@@ -1,0 +1,78 @@
+#COMMANDS:
+to run an Oozie workflow to find out the 3 airlines with the highest and lowest probability, respectively, for being on schedule;
+the 3 airports with the longest and shortest average taxi time per flight (both in and out), respectively; and
+the most common reason for flight cancellations.
+
+#DATASET: 
+October 1987 to April 2008 on the following website
+https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/HG7NV7
+
+1. Creating a AWS instance (master and slaves) with the below specifications -
+
+   Instance Information: Ubuntu Server 20.04 LTS (HVM)
+   Type: t2.medium
+   Memory(GiB): 4
+   Instance Storage(GB): 24G
+
+2. Install Java on the AWS EC2 instance 
+   sudo apt-get install openjdk-8-jdk -y
+
+3. Install HAPDOOP on the AWS EC2 instance 
+   wget https://archive.apache.org/dist/hadoop/common/hadoop-2.6.5/hadoop-2.6.5.tar.gz
+   tar -xvzf hadoop-2.6.5.tar.gz
+
+4. Install OOZIE on the AWS EC2 instance
+   wget https://archive.apache.org/dist/oozie/4.1.0/oozie-4.1.0.tar.gz
+   tar -xzvf oozie-4.1.0.tar.gz
+
+Commands to run in Fully distributed Mode:
+
+Step1 : Format the Namenode initially and commence the Hadoop service - 
+
+Initiate the process by formatting the Namenode and launching the Hadoop service to establish a robust foundation for efficient data processing and storage within the system.
+
+   $bin/hdfs namenode -format
+   $sbin/start-dfs.sh
+   $sbin/start-yarn.sh
+
+
+
+Step2 : Create java mapreduce program  files, Compile the programs and create JAR package using the instructions provided below -
+
+Here make sure JAR packages are created for all the java programs.
+
+   $javac <file_name.java> -cp $(Hadoop classpath)
+   $jar cvf <file_name.jar> *.class
+
+
+Step3 : Transfer the input data files to HDFS by creating an input directory - 
+
+Then we proceed by transfering the input data files to HDFS by establishing an input directory, ensuring seamless integration and accessibility for further processing and analysis on the Hadoop Distributed File System.
+
+    $bin/hdfs dfs  -mkdir  /input
+    $bin/hdfs dfs -put flight-data input/
+
+
+Step4 : OOZIE start -
+
+Then proceed to start OOZIE using the below command
+
+   $OOZIE_HOME/bin/oozied.sh start
+
+
+
+Step5 : Run the Programs
+
+   cd ~/oozie-4.1.0
+   bin/oozie job -oozie  http://localhost:11000/oozie -config examples/apps/map-reduce/job.properties -run
+
+Step6 : Get Result:
+
+Gain access to the desired output or information, ensuring the successful running of the intended task.
+$ hdfs dfs -get flight-data/output output
+
+14. See the result:
+$ cat output/OnScheduleAirlines/part-r-00000
+$ cat output/AirportsTaxiTime/part-r-00000
+$ cat output/Cancellations/part-r-00000
+
